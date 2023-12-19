@@ -62,5 +62,4 @@ public class ScriptWrapper extends AbstractScript {
         }
         return 1000;
     }
-
 }
