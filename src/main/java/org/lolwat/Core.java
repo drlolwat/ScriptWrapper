@@ -14,6 +14,7 @@ import static org.dreambot.api.utilities.Logger.log;
 
 public class Core implements Runnable{
     private int lastBankGP = -1;
+    private int lastInventoryGP = -1;
     private int lastTotalLevel = -1;
     private int lastQuestPoints = -1;
     private final Map<Skill, Integer> lastSkillLevels = new HashMap<>();
@@ -36,31 +37,35 @@ public class Core implements Runnable{
     private boolean checkForChanges() {
         boolean hasChanged = false;
         int currentBankGP = getBankGP();
+        int currentInventoryGP = getInventoryGP();
         int currentTotalLevel = getTotalLevel();
         int currentQuestPoints = getQuestPoints();
 
-        if (currentBankGP != lastBankGP || currentTotalLevel != lastTotalLevel || currentQuestPoints != lastQuestPoints) {
+        // Check for changes in total GP (bank + inventory)
+        if (currentBankGP != lastBankGP || currentInventoryGP != lastInventoryGP) {
             hasChanged = true;
         }
-
-    for (Skill skill : Skill.values()) {
-        int currentLevel = Skills.getRealLevel(skill);
-        Integer lastLevel = lastSkillLevels.get(skill);
-        if (lastLevel == null || currentLevel != lastLevel){
-            lastSkillLevels.put(skill, currentLevel);
-            hasChanged = true;
+        for (Skill skill : Skill.values()) {
+            int currentLevel = Skills.getRealLevel(skill);
+            Integer lastLevel = lastSkillLevels.get(skill);
+            if (lastLevel == null || currentLevel != lastLevel) {
+                lastSkillLevels.put(skill, currentLevel);
+                hasChanged = true;
+            }
         }
+
+        // Update the last known values only if there's a change
+        if (hasChanged) {
+            lastBankGP = currentBankGP;
+            lastInventoryGP = currentInventoryGP;
+            lastTotalLevel = currentTotalLevel;
+            lastQuestPoints = currentQuestPoints;
+        }
+        return hasChanged;
     }
 
-    lastBankGP = currentBankGP;
-    lastTotalLevel = currentTotalLevel;
-    lastQuestPoints = currentQuestPoints;
-
-    return hasChanged;
-    }
-    //TODO cleanup logs so that money moving operations don't cause output
     private void logInformation() {
-        int totalGP = getBankGP() + getInventoryGP();
+        int totalGP = lastBankGP + lastInventoryGP;
         log("BB_GP: " + totalGP);
         log("BB_TTL: " + getTotalLevel());
         log("BB_QP: " + getQuestPoints());
