@@ -11,45 +11,64 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.dreambot.api.utilities.Logger.log;
+
 //TODO Handle muling "BB_MULE: {\"internalId\": \"\", \"internalAccount\": \"\", \"world\": \"\", \"location\": \"\", \"items\":{}, \"master\": \"\"}"
 //TODO Limit 10 accounts per world, optionally per host
 //TODO Add check for stuckness
 //TODO add live bank and inventory
-//TODO
+//TODO listen for rare item drops and report to user/org
 
-public class Core implements Runnable{
+
+public class Core implements Runnable {
     private int lastBankGP = -1;
     private int lastInventoryGP = -1;
+    private int lastTotalGP = -1;
     private int lastTotalLevel = -1;
     private int lastQuestPoints = -1;
     private final Map<Skill, Integer> lastSkillLevels = new HashMap<>();
+
     @Override
     public void run() {
-        //log("Core thread started");
         while (true) {
-            if (checkForChanges()) {
-                logInformation();
+            if (Bank.isOpen()) {
+                if (checkForBankChanges()) {
+                    logInformation();
+                }
             }
             try {
-                Thread.sleep(3000); // Run core every 3 seconds
-                //log("Core thread running");
+                Thread.sleep(500); // Run core every 0.5 seconds
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
     }
 
-    private boolean checkForChanges() {
+    private boolean checkForBankChanges() {
         boolean hasChanged = false;
+
         int currentBankGP = getBankGP();
         int currentInventoryGP = getInventoryGP();
-        int currentTotalLevel = getTotalLevel();
-        int currentQuestPoints = getQuestPoints();
+        int currentTotalGP = currentBankGP + currentInventoryGP;
 
-        // Check for changes in total GP (bank + inventory)
-        if (currentBankGP != lastBankGP || currentInventoryGP != lastInventoryGP) {
+        if (currentTotalGP != lastTotalGP) {
+            lastTotalGP = currentTotalGP;
+            lastBankGP = currentBankGP;
+            lastInventoryGP = currentInventoryGP;
             hasChanged = true;
         }
+
+        int currentTotalLevel = getTotalLevel();
+        if (currentTotalLevel != lastTotalLevel) {
+            lastTotalLevel = currentTotalLevel;
+            hasChanged = true;
+        }
+
+        int currentQuestPoints = getQuestPoints();
+        if (currentQuestPoints != lastQuestPoints) {
+            lastQuestPoints = currentQuestPoints;
+            hasChanged = true;
+        }
+
         for (Skill skill : Skill.values()) {
             int currentLevel = Skills.getRealLevel(skill);
             Integer lastLevel = lastSkillLevels.get(skill);
@@ -59,21 +78,13 @@ public class Core implements Runnable{
             }
         }
 
-        // Update the last known values only if there's a change
-        if (hasChanged) {
-            lastBankGP = currentBankGP;
-            lastInventoryGP = currentInventoryGP;
-            lastTotalLevel = currentTotalLevel;
-            lastQuestPoints = currentQuestPoints;
-        }
         return hasChanged;
     }
 
     private void logInformation() {
-        int totalGP = lastBankGP + lastInventoryGP;
-        log("BB_GP: " + totalGP);
-        log("BB_TTL: " + getTotalLevel());
-        log("BB_QP: " + getQuestPoints());
+        log("BB_GP: " + lastTotalGP);
+        log("BB_TTL: " + lastTotalLevel);
+        log("BB_QP: " + lastQuestPoints);
         logStats();
     }
 
@@ -103,16 +114,5 @@ public class Core implements Runnable{
 
     private int getQuestPoints() {
         return Quests.getQuestPoints();
-    }
-
-    private String getStats() {
-        StringBuilder stats = new StringBuilder("{");
-        for (Skill skill : Skill.values()) {
-            int level = Skills.getRealLevel(skill);
-            stats.append("\"").append(skill.getName()).append("\": ").append(level).append(", ");
-        }
-        stats.setLength(stats.length() - 2); // Remove the last comma and space
-        stats.append("}");
-        return stats.toString();
     }
 }
