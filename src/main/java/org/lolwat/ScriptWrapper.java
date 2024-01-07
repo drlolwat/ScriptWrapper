@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @ScriptManifest(
         category = Category.MISC,
-        name = "ScriptWrapper",
+        name = "BotBuddyWrapper",
         author = "BotBuddy",
         version = 1.0
 )
