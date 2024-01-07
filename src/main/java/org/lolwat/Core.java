@@ -11,6 +11,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.dreambot.api.utilities.Logger.log;
+//TODO Handle muling "BB_MULE: {\"internalId\": \"\", \"internalAccount\": \"\", \"world\": \"\", \"location\": \"\", \"items\":{}, \"master\": \"\"}"
+//TODO Limit 10 accounts per world, optionally per host
+//TODO Add check for stuckness
+//TODO add live bank and inventory
+//TODO
 
 public class Core implements Runnable{
     private int lastBankGP = -1;
@@ -26,7 +31,7 @@ public class Core implements Runnable{
                 logInformation();
             }
             try {
-                Thread.sleep(5000); // Run core every 5 seconds
+                Thread.sleep(3000); // Run core every 3 seconds
                 //log("Core thread running");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
