@@ -50,7 +50,7 @@ public class ScriptWrapper extends AbstractScript {
                 //log("Thread interrupted while waiting to start script.");
             }
 
-            log("Starting script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
+            //log("Starting script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
             manager.start(scriptName, scriptParams);
         }
     }
