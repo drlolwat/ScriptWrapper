@@ -10,10 +10,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ScriptManifest(
         category = Category.MISC,
         name = "BotBuddyWrapper",
-        author = "BotBuddy",
-        version = 1.0
+        author = "Riboflavin",
+        version = 0.1
 )
-public class ScriptWrapper extends AbstractScript {
+public class BotBuddyWrapper extends AbstractScript {
     private final ScriptManager manager = ScriptManager.getScriptManager();
     private Core core;
     private Thread coreThread;

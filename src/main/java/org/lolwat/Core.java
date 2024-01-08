@@ -1,11 +1,16 @@
 package org.lolwat;
 
+import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.container.impl.bank.Bank;
 import org.dreambot.api.methods.quest.Quests;
 import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.methods.skills.Skills;
+import org.dreambot.api.methods.widget.Widget;
+import org.dreambot.api.methods.widget.Widgets;
+import org.dreambot.api.utilities.AccountManager;
 import org.dreambot.api.wrappers.items.Item;
+import org.dreambot.api.wrappers.widgets.WidgetChild;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +22,6 @@ import static org.dreambot.api.utilities.Logger.log;
 //TODO Add check for stuckness
 //TODO add live bank and inventory
 //TODO listen for rare item drops and report to user/org
-
 
 public class Core implements Runnable {
     private int lastBankGP = -1;
@@ -36,7 +40,7 @@ public class Core implements Runnable {
                 }
             }
             try {
-                Thread.sleep(500); // Run core every 0.5 seconds
+                Thread.sleep(1000); // Run core every 0.5 seconds
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -82,6 +86,22 @@ public class Core implements Runnable {
     }
 
     private void logInformation() {
+        String displayName = "";
+        Widget w = Widgets.getWidget(162);
+        if (w != null) {
+            WidgetChild c = w.getChild(55);
+            displayName = c.getText().split(":")[0].trim();
+        }
+
+        String accountType = Client.isMembers() ? "P2P" : "F2P";
+        int currentWorld = Client.getCurrentWorld();
+
+        if (!displayName.isEmpty()) {
+            log("BB_DISPLAYNAME: " + displayName);
+        }
+
+        log("BB_TYPE: " + accountType);
+        log("BB_WORLD: " + currentWorld);
         log("BB_GP: " + lastTotalGP);
         log("BB_TTL: " + lastTotalLevel);
         log("BB_QP: " + lastQuestPoints);
