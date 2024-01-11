@@ -8,7 +8,6 @@ import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.methods.skills.Skills;
 import org.dreambot.api.methods.widget.Widget;
 import org.dreambot.api.methods.widget.Widgets;
-import org.dreambot.api.utilities.AccountManager;
 import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.WidgetChild;
 
@@ -40,7 +39,7 @@ public class Core implements Runnable {
                 }
             }
             try {
-                Thread.sleep(1000); // Run core every 0.5 seconds
+                Thread.sleep(1000); // Run core every 1 seconds
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -94,28 +93,34 @@ public class Core implements Runnable {
         }
 
         String accountType = Client.isMembers() ? "P2P" : "F2P";
-        int currentWorld = Client.getCurrentWorld();
+        int world = Client.getCurrentWorld();
 
-        if (!displayName.isEmpty()) {
-            log("BB_DISPLAYNAME: " + displayName);
-        }
+        StringBuilder jsonOutput = new StringBuilder();
+        jsonOutput.append("{");
+        jsonOutput.append("\"BB_DISPLAYNAME\": \"").append(displayName).append("\", ");
+        jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
+        jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
+        jsonOutput.append("\"BB_GP\": ").append(lastTotalGP).append(", ");
+        jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
+        jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
+        jsonOutput.append(getStatsJson());
+        jsonOutput.append("}");
 
-        log("BB_TYPE: " + accountType);
-        log("BB_WORLD: " + currentWorld);
-        log("BB_GP: " + lastTotalGP);
-        log("BB_TTL: " + lastTotalLevel);
-        log("BB_QP: " + lastQuestPoints);
-        logStats();
+        log("BB_OUTPUT: " + jsonOutput.toString());
     }
 
-    private void logStats() {
-        StringBuilder stats = new StringBuilder("{");
+
+    private String getStatsJson() {
+        StringBuilder statsJson = new StringBuilder("\"BB_STATS\": {");
         for (Map.Entry<Skill, Integer> entry : lastSkillLevels.entrySet()) {
-            stats.append("\"").append(entry.getKey().getName()).append("\": ").append(entry.getValue()).append(", ");
+            statsJson.append("\"").append(entry.getKey().getName()).append("\": ")
+                    .append(entry.getValue()).append(", ");
         }
-        stats.setLength(stats.length() - 2); // Remove the last comma and space
-        stats.append("}");
-        log("BB_STATS: " + stats);
+        if (!lastSkillLevels.isEmpty()) {
+            statsJson.setLength(statsJson.length() - 2); // Remove the last comma and space
+        }
+        statsJson.append("}");
+        return statsJson.toString();
     }
 
     private int getBankGP() {
