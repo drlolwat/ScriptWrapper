@@ -31,11 +31,6 @@
             <version>3.0.0</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util-ajax</artifactId>
-            <version>9.4.46.v20220331</version>
-        </dependency>
     </dependencies>
 
     <build>
