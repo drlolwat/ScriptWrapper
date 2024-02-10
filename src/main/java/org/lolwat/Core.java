@@ -100,7 +100,7 @@ public class Core implements Runnable {
         jsonOutput.append("\"BB_DISPLAYNAME\": \"").append(displayName).append("\", ");
         jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
         jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
-        jsonOutput.append("\"BB_GP\": ").append(lastTotalGP).append(", ");
+        jsonOutput.append("\"BB_GP\": ").append((long)lastTotalGP).append(", ");
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
         jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
         jsonOutput.append(getStatsJson());

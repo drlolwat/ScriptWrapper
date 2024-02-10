@@ -7,12 +7,7 @@ import org.lolwat.Core;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@ScriptManifest(
-        category = Category.MISC,
-        name = "BotBuddyWrapper",
-        author = "Riboflavin",
-        version = 0.1
-)
+@ScriptManifest(category = Category.MISC,name = "BotBuddyWrapper",author = "Riboflavin",version = 0.1)
 public class BotBuddyWrapper extends AbstractScript {
     private final ScriptManager manager = ScriptManager.getScriptManager();
     private Core core;
@@ -29,11 +24,15 @@ public class BotBuddyWrapper extends AbstractScript {
         // Handle script parameters and starting scripts in a separate thread
         new Thread(() -> {
             if (args.length > 0) {
+                try {
+                    Thread.sleep(3000); // Sleep for 3 seconds
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
                 manageScripts(args);
             }
             shouldStop.set(true);
         }).start();
-
         this.stop();
     }
 
