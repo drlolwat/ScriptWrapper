@@ -25,7 +25,7 @@ public class BotBuddyWrapper extends AbstractScript {
         new Thread(() -> {
             if (args.length > 0) {
                 try {
-                    Thread.sleep(3000); // Sleep for 3 seconds
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -43,7 +43,7 @@ public class BotBuddyWrapper extends AbstractScript {
             //log("Preparing to start script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
 
             try {
-                Thread.sleep(3000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 //log("Thread interrupted while waiting to start script.");
