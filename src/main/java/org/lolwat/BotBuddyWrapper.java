@@ -1,34 +1,71 @@
+package org.lolwat;
+
+import org.dreambot.api.randoms.RandomEvent;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.ScriptManager;
-import org.lolwat.Core;
 
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@ScriptManifest(category = Category.MISC, name = "BotBuddyWrapper", author = "Riboflavin", version = 0.1)
+@ScriptManifest(category = Category.MISC, name = "BotBuddyWrapper", author = "Riboflavin", version = 1.0)
 public class BotBuddyWrapper extends AbstractScript {
     private final ScriptManager manager = ScriptManager.getScriptManager();
     private Core core;
     private Thread coreThread;
     private final AtomicBoolean shouldStop = new AtomicBoolean(false);
     private final Lock stopLock = new ReentrantLock();
+    private final String instanceId = UUID.randomUUID().toString();
+    private String nextScriptName = null;
+    private String[] nextScriptParams = null;
 
     @Override
     public void onStart(String... args) {
+        super.onStart();
+        getRandomManager().disableSolver(RandomEvent.LOGIN);
+
+        log("Starting BotBuddyWrapper instance: " + instanceId);
         core = new Core();
-        coreThread = new Thread(core, "CoreThread");
+        coreThread = new Thread(core, "CoreThread-" + instanceId);
         coreThread.start();
 
-        new Thread(() -> {
-            if (args.length > 0) {
-                manageScripts(args);
-            }
+        // Parse arguments for the next script
+        if (args.length > 0) {
+            nextScriptName = args[0];
+            nextScriptParams = Arrays.copyOfRange(args, 1, args.length);
+        }
+    }
+
+    private final long startTime = System.currentTimeMillis(); // Store start time
+
+    @Override
+    public int onLoop() {
+        // Check if 2 seconds have passed since the script started
+        if (System.currentTimeMillis() - startTime > 2000) {
+            shouldStop.set(true); // Signal to stop the script
+        }
+
+        if (shouldStop.get()) {
             safelyStopScript();
-        }, "ScriptManagerThread").start();
+            return -1; // Signal to stop the script immediately
+        }
+
+        // Normal operation
+        return 1000; // Delay for next loop iteration (1 second here for example)
+    }
+
+
+    @Override
+    public void onExit() {
+        safelyStopScript();
+        // Optionally start the next script if specified
+        if (nextScriptName != null) {
+            startNextScript();
+        }
     }
 
     private void safelyStopScript() {
@@ -37,46 +74,20 @@ public class BotBuddyWrapper extends AbstractScript {
             shouldStop.set(true);
             if (coreThread != null && coreThread.isAlive()) {
                 coreThread.interrupt();
-                coreThread.join();
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             stopLock.unlock();
         }
-        // This call to stop() might be redundant if onLoop() is responsible for stopping the script.
-        // Consider removing it if your logic in onLoop() is sufficient.
-        stop();
     }
 
-    private void manageScripts(String[] params) {
-        if (params.length > 0 && !manager.isRunning()) {
-            String scriptName = params[0];
-            String[] scriptParams = Arrays.copyOfRange(params, 1, params.length);
-
-            try {
-                // Additional delay if necessary
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            manager.start(scriptName, scriptParams);
+    private void startNextScript() {
+        if (nextScriptName != null) {
+            // Create and start the script launch thread
+            ScriptLaunch scriptLaunch = new ScriptLaunch(manager, nextScriptName, nextScriptParams);
+            Thread launchThread = new Thread(scriptLaunch, "ScriptLaunchThread");
+            launchThread.start();
         }
-    }
-
-    @Override
-    public int onLoop() {
-        if (shouldStop.get()) {
-            safelyStopScript();
-            return -1; // Stop the script immediately
-        }
-        return 1000; // Continue the loop with a delay of 1 second
-    }
-
-    @Override
-    public void onExit() {
-        // Ensure resources are cleaned up properly when the script exits
-        safelyStopScript();
     }
 }
