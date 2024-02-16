@@ -5,7 +5,6 @@ import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.ScriptManager;
 
-
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,7 +41,7 @@ public class BotBuddyWrapper extends AbstractScript {
         if (params.length > 0) {
             String scriptName = params[0];
             String[] scriptParams = Arrays.copyOfRange(params, 1, params.length);
-            log("Preparing to start script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
+            //log("Preparing to start script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
 
             try {
                 Thread.sleep(5000);
