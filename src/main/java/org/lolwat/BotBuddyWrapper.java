@@ -1,65 +1,92 @@
 package org.lolwat;
 
+import org.dreambot.api.randoms.RandomEvent;
+import org.dreambot.api.randoms.RandomManager;
 import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.ScriptManager;
 
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
-@ScriptManifest(category = Category.MISC,name = "BotBuddyWrapper",author = "Riboflavin",version = 0.1)
+@ScriptManifest(category = Category.MISC, name = "BotBuddyWrapper", author = "Riboflavin", version = 1.0)
 public class BotBuddyWrapper extends AbstractScript {
     private final ScriptManager manager = ScriptManager.getScriptManager();
-    private Core core;
-    private Thread coreThread;
     private final AtomicBoolean shouldStop = new AtomicBoolean(false);
+    private final Lock stopLock = new ReentrantLock();
+    private final String instanceId = UUID.randomUUID().toString();
+    private String nextScriptName = null;
+    private String[] nextScriptParams = null;
+    private Thread coreThread;
+    private long startTime = System.currentTimeMillis();
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(50);
+
+    public synchronized void disableLoginManager() {
+        getRandomManager().disableSolver(RandomEvent.LOGIN);
+    }
+
+    public synchronized void enableLoginManager() {
+        getRandomManager().enableSolver(RandomEvent.LOGIN);
+    }
 
     @Override
-    public void onStart(String ...args) {
+    public void onStart(String... args) {
+        stopLock.lock();
+        try {
+            super.onStart();
+            disableLoginManager();
 
-        core = new Core();
-        coreThread = new Thread(core);
-        coreThread.start();
+            //log("Starting BotBuddyWrapper instance: " + instanceId);
+            Core core = new Core();
+            coreThread = new Thread(core, "CoreThread-" + instanceId);
+            coreThread.start();
 
-        // Handle script parameters and starting scripts in a separate thread
-        new Thread(() -> {
             if (args.length > 0) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                manageScripts(args);
-            }
-            shouldStop.set(true);
-        }).start();
-        this.stop();
-    }
-
-    private void manageScripts(String[] params) {
-        if (params.length > 0) {
-            String scriptName = params[0];
-            String[] scriptParams = Arrays.copyOfRange(params, 1, params.length);
-            //log("Preparing to start script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log("Thread interrupted while waiting to start script.");
+                nextScriptName = args[0];
+                nextScriptParams = Arrays.copyOfRange(args, 1, args.length);
             }
 
-            log("Starting script '" + scriptName + "' with parameters: " + Arrays.toString(scriptParams));
-            manager.start(scriptName, scriptParams);
+            if (nextScriptName != null) {
+                startNextScript();
+            }
+        } finally {
+            stopLock.unlock();
         }
     }
+
     @Override
     public int onLoop() {
-        if (shouldStop.get()) {
-            log("Stopping BotBuddyWrapper.");
-            stop();
+        stopLock.lock();
+        try {
+            shouldStop.set(true);
+
+            if (shouldStop.get()) {
+                return -1;
+            }
+            return 1000;
+        } finally {
+            stopLock.unlock();
         }
-        return 1000;
+    }
+
+    @Override
+    public void onExit() {
+        stopLock.lock();
+        try {
+            enableLoginManager();
+        } finally {
+            stopLock.unlock();
+        }
+    }
+
+    private void startNextScript() {
+        ScriptLaunch scriptLaunch = new ScriptLaunch(manager, nextScriptName, nextScriptParams);
+        executor.execute(scriptLaunch);
     }
 }
