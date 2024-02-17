@@ -6,6 +6,7 @@ import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManifest;
 import org.dreambot.api.script.ScriptManager;
+import org.dreambot.core.Instance;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @ScriptManifest(category = Category.MISC, name = "BotBuddyWrapper", author = "Riboflavin", version = 1.0)
 public class BotBuddyWrapper extends AbstractScript {
-    private final ScriptManager manager = ScriptManager.getScriptManager();
+    private final ScriptManager manager = Instance.getInstance().getScriptManager();
     private final AtomicBoolean shouldStop = new AtomicBoolean(false);
     private final Lock stopLock = new ReentrantLock();
     private final String instanceId = UUID.randomUUID().toString();
@@ -86,7 +87,7 @@ public class BotBuddyWrapper extends AbstractScript {
     }
 
     private void startNextScript() {
-        ScriptLaunch scriptLaunch = new ScriptLaunch(manager, nextScriptName, nextScriptParams);
+        ScriptLaunch scriptLaunch = new ScriptLaunch(nextScriptName, nextScriptParams);
         executor.execute(scriptLaunch);
     }
 }

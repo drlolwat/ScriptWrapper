@@ -1,6 +1,8 @@
 package org.lolwat;
 
 import org.dreambot.api.script.ScriptManager;
+import org.dreambot.core.Instance;
+
 import static org.dreambot.api.utilities.Logger.log;
 
 import java.util.Random;
@@ -14,8 +16,8 @@ public class ScriptLaunch implements Runnable {
     private final String[] params;
     private final Lock managerLock = new ReentrantLock();
 
-    public ScriptLaunch(ScriptManager manager, String scriptName, String[] params) {
-        this.manager = manager;
+    public ScriptLaunch(String scriptName, String[] params) {
+        this.manager = Instance.getInstance().getScriptManager();
         this.scriptName = scriptName;
         this.params = params;
     }
