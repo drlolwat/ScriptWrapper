@@ -37,10 +37,11 @@ public class Core implements Runnable {
     public void run() {
         while (true) {
             if (Bank.isOpen()) {
-                if (checkForBankChanges()) {
-                    logInformation();
-                }
+                checkForBankChanges();
             }
+
+            logInformation();
+
             try {
                 Thread.sleep(1000); // Run core every 1 seconds
             } catch (InterruptedException e) {
@@ -49,19 +50,7 @@ public class Core implements Runnable {
         }
     }
 
-    private int getBankPlatinumTokens() {
-        Item platinumTokens = Bank.get("Platinum token");
-        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
-    }
-
-    private int getInventoryPlatinumTokens() {
-        Item platinumTokens = Inventory.get("Platinum token");
-        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
-    }
-
-    private boolean checkForBankChanges() {
-        boolean hasChanged = false;
-
+    private void checkForBankChanges() {
         int currentBankGP = getBankGP() + getBankPlatinumTokens();
         int currentInventoryGP = getInventoryGP() + getInventoryPlatinumTokens();
         int currentTotalGP = currentBankGP + currentInventoryGP;
@@ -70,31 +59,7 @@ public class Core implements Runnable {
             lastTotalGP = currentTotalGP;
             lastBankGP = currentBankGP;
             lastInventoryGP = currentInventoryGP;
-            hasChanged = true;
         }
-
-        int currentTotalLevel = getTotalLevel();
-        if (currentTotalLevel != lastTotalLevel) {
-            lastTotalLevel = currentTotalLevel;
-            hasChanged = true;
-        }
-
-        int currentQuestPoints = getQuestPoints();
-        if (currentQuestPoints != lastQuestPoints) {
-            lastQuestPoints = currentQuestPoints;
-            hasChanged = true;
-        }
-
-        for (Skill skill : Skill.values()) {
-            int currentLevel = Skills.getRealLevel(skill);
-            Integer lastLevel = lastSkillLevels.get(skill);
-            if (lastLevel == null || currentLevel != lastLevel) {
-                lastSkillLevels.put(skill, currentLevel);
-                hasChanged = true;
-            }
-        }
-
-        return hasChanged;
     }
 
     private void logInformation() {
@@ -102,8 +67,26 @@ public class Core implements Runnable {
             return;
         }
 
-        if (Instant.now().getEpochSecond() - lastChecked < 30) {
+        if (Instant.now().getEpochSecond() - lastChecked < 60) {
             return;
+        }
+
+        int currentTotalLevel = getTotalLevel();
+        if (currentTotalLevel != lastTotalLevel) {
+            lastTotalLevel = currentTotalLevel;
+        }
+
+        int currentQuestPoints = getQuestPoints();
+        if (currentQuestPoints != lastQuestPoints) {
+            lastQuestPoints = currentQuestPoints;
+        }
+
+        for (Skill skill : Skill.values()) {
+            int currentLevel = Skills.getRealLevel(skill);
+            Integer lastLevel = lastSkillLevels.get(skill);
+            if (lastLevel == null || currentLevel != lastLevel) {
+                lastSkillLevels.put(skill, currentLevel);
+            }
         }
 
         String displayName = "";
@@ -123,7 +106,7 @@ public class Core implements Runnable {
         jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
         jsonOutput.append("\"BB_MEM_DAYS_LEFT\": ").append(membershipDaysLeft).append(", ");
         jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
-        jsonOutput.append("\"BB_GP\": ").append(lastBankGP).append(", ");
+        jsonOutput.append("\"BB_GP\": ").append(lastTotalGP).append(", ");
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
         jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
         jsonOutput.append(getStatsJson());
@@ -145,6 +128,16 @@ public class Core implements Runnable {
         }
         statsJson.append("}");
         return statsJson.toString();
+    }
+
+    private int getBankPlatinumTokens() {
+        Item platinumTokens = Bank.get("Platinum token");
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
+    }
+
+    private int getInventoryPlatinumTokens() {
+        Item platinumTokens = Inventory.get("Platinum token");
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
     }
 
     private int getBankGP() {
