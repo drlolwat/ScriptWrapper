@@ -46,12 +46,22 @@ public class Core implements Runnable {
             }
         }
     }
-    
+
+    private int getBankPlatinumTokens() {
+        Item platinumTokens = Bank.get("Platinum token");
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
+    }
+
+    private int getInventoryPlatinumTokens() {
+        Item platinumTokens = Inventory.get("Platinum token");
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
+    }
+
     private boolean checkForBankChanges() {
         boolean hasChanged = false;
 
-        int currentBankGP = getBankGP();
-        int currentInventoryGP = getInventoryGP();
+        int currentBankGP = getBankGP() + getBankPlatinumTokens();
+        int currentInventoryGP = getInventoryGP() + getInventoryPlatinumTokens();
         int currentTotalGP = currentBankGP + currentInventoryGP;
 
         if (currentTotalGP != lastTotalGP) {
