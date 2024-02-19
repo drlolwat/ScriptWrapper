@@ -12,6 +12,7 @@ import org.dreambot.api.methods.widget.Widgets;
 import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.WidgetChild;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ public class Core implements Runnable {
     private int lastTotalLevel = -1;
     private int lastQuestPoints = -1;
     private final Map<Skill, Integer> lastSkillLevels = new HashMap<>();
+    private double lastChecked = -1;
 
     @Override
     public void run() {
@@ -96,6 +98,14 @@ public class Core implements Runnable {
     }
 
     private void logInformation() {
+        if (lastTotalGP == -1) {
+            return;
+        }
+
+        if (Instant.now().getEpochSecond() - lastChecked < 30) {
+            return;
+        }
+
         String displayName = "";
         Widget w = Widgets.getWidget(162);
         if (w != null) {
@@ -113,15 +123,16 @@ public class Core implements Runnable {
         jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
         jsonOutput.append("\"BB_MEM_DAYS_LEFT\": ").append(membershipDaysLeft).append(", ");
         jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
-        jsonOutput.append("\"BB_GP\": ").append((long)lastTotalGP).append(", ");
+        jsonOutput.append("\"BB_GP\": ").append(lastBankGP).append(", ");
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
         jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
         jsonOutput.append(getStatsJson());
         jsonOutput.append("}");
 
         log("BB_OUTPUT: " + jsonOutput.toString());
-    }
 
+        lastChecked = Instant.now().getEpochSecond();
+    }
 
     private String getStatsJson() {
         StringBuilder statsJson = new StringBuilder("\"BB_STATS\": {");
