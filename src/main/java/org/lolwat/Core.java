@@ -4,6 +4,7 @@ import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.container.impl.bank.Bank;
 import org.dreambot.api.methods.quest.Quests;
+import org.dreambot.api.methods.settings.PlayerSettings;
 import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.methods.skills.Skills;
 import org.dreambot.api.methods.widget.Widget;
@@ -45,7 +46,7 @@ public class Core implements Runnable {
             }
         }
     }
-
+    
     private boolean checkForBankChanges() {
         boolean hasChanged = false;
 
@@ -94,11 +95,13 @@ public class Core implements Runnable {
 
         String accountType = Client.isMembers() ? "P2P" : "F2P";
         int world = Client.getCurrentWorld();
+        int membershipDaysLeft = PlayerSettings.getConfig(1780);
 
         StringBuilder jsonOutput = new StringBuilder();
         jsonOutput.append("{");
         jsonOutput.append("\"BB_DISPLAYNAME\": \"").append(displayName).append("\", ");
         jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
+        jsonOutput.append("\"BB_MEM_DAYS_LEFT\": ").append(membershipDaysLeft).append(", ");
         jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
         jsonOutput.append("\"BB_GP\": ").append((long)lastTotalGP).append(", ");
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
