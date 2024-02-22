@@ -26,7 +26,7 @@ public class BotBuddyWrapper extends AbstractScript {
     private String[] nextScriptParams = null;
     private Thread coreThread;
     private long startTime = System.currentTimeMillis();
-    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(50);
+    private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
 
     public synchronized void disableLoginManager() {
         getRandomManager().disableSolver(RandomEvent.LOGIN);
