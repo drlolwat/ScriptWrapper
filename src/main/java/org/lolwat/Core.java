@@ -141,6 +141,9 @@ public class Core implements Runnable {
     }
 
     private int getBankGP() {
+        if (!Bank.isOpen()) {
+            return lastBankGP;
+        }
         Item coins = Bank.get("Coins");
         return coins != null ? coins.getAmount() : 0;
     }
