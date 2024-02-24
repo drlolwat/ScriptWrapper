@@ -9,6 +9,8 @@ import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.methods.skills.Skills;
 import org.dreambot.api.methods.widget.Widget;
 import org.dreambot.api.methods.widget.Widgets;
+import org.dreambot.api.wrappers.interactive.Player;
+import org.dreambot.api.methods.interactive.Players;
 import org.dreambot.api.wrappers.items.Item;
 import org.dreambot.api.wrappers.widgets.WidgetChild;
 
@@ -110,6 +112,9 @@ public class Core implements Runnable {
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
         jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
         jsonOutput.append(getStatsJson());
+        jsonOutput.append("\"BB_X\": ").append(Client.getBase().getX()).append(", ");
+        jsonOutput.append("\"BB_Y\": ").append(Client.getBase().getY()).append(", ");
+        jsonOutput.append("\"BB_Z\": ").append(Client.getBase().getZ());
         jsonOutput.append("}");
 
         log("BB_OUTPUT: " + jsonOutput.toString());
@@ -126,7 +131,7 @@ public class Core implements Runnable {
         if (!lastSkillLevels.isEmpty()) {
             statsJson.setLength(statsJson.length() - 2); // Remove the last comma and space
         }
-        statsJson.append("}");
+        statsJson.append("}, ");
         return statsJson.toString();
     }
 
