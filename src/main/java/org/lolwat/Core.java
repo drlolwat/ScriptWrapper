@@ -26,6 +26,7 @@ import static org.dreambot.api.utilities.Logger.log;
 //TODO add live bank and inventory
 //TODO listen for rare item drops and report to user/org
 
+
 public class Core implements Runnable {
     private int lastBankGP = -1;
     private int lastInventoryGP = -1;
@@ -33,16 +34,26 @@ public class Core implements Runnable {
     private int lastTotalLevel = -1;
     private int lastQuestPoints = -1;
     private final Map<Skill, Integer> lastSkillLevels = new HashMap<>();
-    private double lastChecked = -1;
+    private boolean hasChanged = false;
+    private boolean isFirstOutput = true;
+    private boolean isBankChecked = false;
 
     @Override
     public void run() {
         while (true) {
             if (Bank.isOpen()) {
                 checkForBankChanges();
+                isBankChecked = true;
+            } else {
+                checkForChanges();
+                isBankChecked = false;
             }
 
-            logInformation();
+            if ((hasChanged || isFirstOutput) && isBankChecked) {
+                logInformation();
+                hasChanged = false;
+                isFirstOutput = false;
+            }
 
             try {
                 Thread.sleep(1000); // Run core every 1 seconds
@@ -61,26 +72,22 @@ public class Core implements Runnable {
             lastTotalGP = currentTotalGP;
             lastBankGP = currentBankGP;
             lastInventoryGP = currentInventoryGP;
+            hasChanged = true;
         }
     }
 
-    private void logInformation() {
-        if (lastTotalGP == -1) {
-            return;
-        }
-
-        if (Instant.now().getEpochSecond() - lastChecked < 60) {
-            return;
-        }
+    private void checkForChanges() {
 
         int currentTotalLevel = getTotalLevel();
         if (currentTotalLevel != lastTotalLevel) {
             lastTotalLevel = currentTotalLevel;
+            hasChanged = true;
         }
 
         int currentQuestPoints = getQuestPoints();
         if (currentQuestPoints != lastQuestPoints) {
             lastQuestPoints = currentQuestPoints;
+            hasChanged = true;
         }
 
         for (Skill skill : Skill.values()) {
@@ -88,8 +95,12 @@ public class Core implements Runnable {
             Integer lastLevel = lastSkillLevels.get(skill);
             if (lastLevel == null || currentLevel != lastLevel) {
                 lastSkillLevels.put(skill, currentLevel);
+                hasChanged = true;
             }
         }
+    }
+
+    private void logInformation() {
 
         String displayName = "";
         Widget w = Widgets.getWidget(162);
@@ -112,14 +123,9 @@ public class Core implements Runnable {
         jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
         jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
         jsonOutput.append(getStatsJson());
-        jsonOutput.append("\"BB_X\": ").append(Client.getBase().getX()).append(", ");
-        jsonOutput.append("\"BB_Y\": ").append(Client.getBase().getY()).append(", ");
-        jsonOutput.append("\"BB_Z\": ").append(Client.getBase().getZ());
         jsonOutput.append("}");
 
         log("BB_OUTPUT: " + jsonOutput.toString());
-
-        lastChecked = Instant.now().getEpochSecond();
     }
 
     private String getStatsJson() {
@@ -131,7 +137,7 @@ public class Core implements Runnable {
         if (!lastSkillLevels.isEmpty()) {
             statsJson.setLength(statsJson.length() - 2); // Remove the last comma and space
         }
-        statsJson.append("}, ");
+        statsJson.append("}");
         return statsJson.toString();
     }
 
