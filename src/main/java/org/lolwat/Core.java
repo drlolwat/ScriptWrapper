@@ -46,7 +46,6 @@ public class Core implements Runnable {
                 isBankChecked = true;
             } else {
                 checkForChanges();
-                isBankChecked = false;
             }
 
             if ((hasChanged || isFirstOutput) && isBankChecked) {
