@@ -18,6 +18,7 @@ public class BotBuddyWrapper extends AbstractScript {
     private String nextScriptName = null;
     private String[] nextScriptParams = null;
     private Thread coreThread;
+    private Thread mapThread;
     private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     @Override
@@ -28,6 +29,10 @@ public class BotBuddyWrapper extends AbstractScript {
             Core core = new Core();
             coreThread = new Thread(core, "CoreThread");
             coreThread.start();
+
+            Map map = new Map();
+            mapThread = new Thread(map, "MapThread");
+            mapThread.start();
 
             if (args.length > 0) {
                 nextScriptName = args[0];
