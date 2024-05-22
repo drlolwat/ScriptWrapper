@@ -19,24 +19,28 @@ public class BotBuddyWrapper extends AbstractScript {
     private String[] nextScriptParams = null;
     private Thread coreThread;
     private Thread mapThread;
+    private ScriptServer scriptServer;
     private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     @Override
     public void onStart(String... args) {
         stopLock.lock();
         try {
-
             Core core = new Core();
             coreThread = new Thread(core, "CoreThread");
             coreThread.start();
 
-            Map map = new Map();
-            mapThread = new Thread(map, "MapThread");
-            mapThread.start();
+            //Map map = new Map();
+            //mapThread = new Thread(map, "MapThread");
+            //mapThread.start();
 
-            if (args.length > 0) {
-                nextScriptName = args[0];
-                nextScriptParams = Arrays.copyOfRange(args, 1, args.length);
+            int port = Integer.parseInt(args[0]);
+            scriptServer = new ScriptServer(port);
+            new Thread(scriptServer, "ScriptServerThread").start();
+
+            if (args.length > 1) {
+                nextScriptName = args[1];
+                nextScriptParams = Arrays.copyOfRange(args, 2, args.length);
             }
 
             if (nextScriptName != null) {
@@ -63,7 +67,7 @@ public class BotBuddyWrapper extends AbstractScript {
     }
 
     private void startNextScript() {
-        ScriptLaunch scriptLaunch = new ScriptLaunch(nextScriptName, nextScriptParams);
+        ScriptLaunch scriptLaunch = new ScriptLaunch(nextScriptName, nextScriptParams, scriptServer);
         executor.execute(scriptLaunch);
     }
 }
