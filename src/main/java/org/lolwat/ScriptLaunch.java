@@ -15,11 +15,13 @@ public class ScriptLaunch implements Runnable {
     private final String scriptName;
     private final String[] params;
     private final Lock managerLock = new ReentrantLock();
+    private final ScriptServer scriptServer;
 
-    public ScriptLaunch(String scriptName, String[] params) {
+    public ScriptLaunch(String scriptName, String[] params, ScriptServer scriptServer) {
         this.manager = Instance.getInstance().getScriptManager();
         this.scriptName = scriptName;
         this.params = params;
+        this.scriptServer = scriptServer;
     }
 
     @Override
@@ -31,8 +33,9 @@ public class ScriptLaunch implements Runnable {
             while (true) {
                 if (!manager.isRunning()) {
                     if (scriptName != null) {
-                        log("Attempting to start next script: " + scriptName + " with params: " + Arrays.toString(params));
+                        log("Attempting to start script: " + scriptName + " with params: " + Arrays.toString(params));
                         manager.start(scriptName, params);
+                        scriptServer.setLastScript(scriptName, params);
                     } else {
                         log("No script name was provided.");
                     }
