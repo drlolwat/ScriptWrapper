@@ -39,3 +39,4 @@ build/
 
 /.idea/*
 src/main/resources/META-INF/*
+src/main/java/TestClient.jar

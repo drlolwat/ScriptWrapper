@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class ScriptServer implements Runnable {
     private final int port;
@@ -49,12 +50,18 @@ public class ScriptServer implements Runnable {
                         case "ChangeScript":
                             if (manager.isRunning()) {
                                 manager.stop();
+                                try {
+                                    Thread.sleep(2000); // wait for 2 seconds
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
                             if (input.length > 1) {
-                                String[] scriptAndParams = input[1].split(" ", 2);
-                                String newScriptName = scriptAndParams[0];
-                                String[] newScriptParams = scriptAndParams.length > 1 ? scriptAndParams[1].split(" ") : new String[0];
-                                manager.start(newScriptName, newScriptParams);
+                                int lastCommaIndex = input[1].lastIndexOf(",");
+                                String newScriptName = input[1].substring(0, lastCommaIndex).replace(",", " ");
+                                String[] newScriptParams = input[1].substring(lastCommaIndex + 1).split(",");
+                                manager.start(newScriptName.trim(), newScriptParams);
+                                setLastScript(newScriptName.trim(), newScriptParams);
                             }
                             break;
                     }
