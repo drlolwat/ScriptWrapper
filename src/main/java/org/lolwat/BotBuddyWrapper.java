@@ -26,6 +26,23 @@ public class BotBuddyWrapper extends AbstractScript {
     public void onStart(String... args) {
         stopLock.lock();
         try {
+            Integer port = null;
+            String scriptName = null;
+            String[] params = null;
+
+            if (args.length > 0) {
+                try {
+                    port = Integer.parseInt(args[0]);
+                    if (args.length > 1) {
+                        scriptName = args[1];
+                        params = Arrays.copyOfRange(args, 2, args.length);
+                    }
+                } catch (NumberFormatException e) {
+                    scriptName = args[0];
+                    params = Arrays.copyOfRange(args, 1, args.length);
+                }
+            }
+
             Core core = new Core();
             coreThread = new Thread(core, "CoreThread");
             coreThread.start();
@@ -34,16 +51,14 @@ public class BotBuddyWrapper extends AbstractScript {
             //mapThread = new Thread(map, "MapThread");
             //mapThread.start();
 
-            int port = Integer.parseInt(args[0]);
-            scriptServer = new ScriptServer(port);
-            new Thread(scriptServer, "ScriptServerThread").start();
-
-            if (args.length > 1) {
-                nextScriptName = args[1];
-                nextScriptParams = Arrays.copyOfRange(args, 2, args.length);
+            if (port != null) {
+                scriptServer = new ScriptServer(port);
+                new Thread(scriptServer, "ScriptServerThread").start();
             }
 
-            if (nextScriptName != null) {
+            if (scriptName != null) {
+                nextScriptName = scriptName;
+                nextScriptParams = params;
                 startNextScript();
             }
         } finally {
