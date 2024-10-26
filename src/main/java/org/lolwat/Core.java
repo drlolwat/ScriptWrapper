@@ -1,5 +1,7 @@
 package org.lolwat;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.dreambot.api.Client;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.container.impl.bank.Bank;
@@ -9,6 +11,7 @@ import org.dreambot.api.methods.skills.Skill;
 import org.dreambot.api.methods.skills.Skills;
 import org.dreambot.api.methods.widget.Widget;
 import org.dreambot.api.methods.widget.Widgets;
+import org.dreambot.api.methods.world.Worlds;
 import org.dreambot.api.wrappers.interactive.Player;
 import org.dreambot.api.methods.interactive.Players;
 import org.dreambot.api.wrappers.items.Item;
@@ -28,9 +31,8 @@ import static org.dreambot.api.utilities.Logger.log;
 
 
 public class Core implements Runnable {
-    private int lastBankGP = -1;
-    private int lastInventoryGP = -1;
-    private int lastTotalGP = -1;
+    private long lastBankGP = -1;
+    private long lastTotalGP = -1;
     private int lastTotalLevel = -1;
     private int lastQuestPoints = -1;
     private final Map<Skill, Integer> lastSkillLevels = new HashMap<>();
@@ -63,14 +65,13 @@ public class Core implements Runnable {
     }
 
     private void checkForBankChanges() {
-        int currentBankGP = getBankGP() + getBankPlatinumTokens();
-        int currentInventoryGP = getInventoryGP() + getInventoryPlatinumTokens();
-        int currentTotalGP = currentBankGP + currentInventoryGP;
+        long currentBankGP = getBankGP() + getBankPlatinumTokens();
+        long currentInventoryGP = getInventoryGP() + getInventoryPlatinumTokens();
+        long currentTotalGP = currentBankGP + currentInventoryGP;
 
         if (currentTotalGP != lastTotalGP) {
             lastTotalGP = currentTotalGP;
             lastBankGP = currentBankGP;
-            lastInventoryGP = currentInventoryGP;
             hasChanged = true;
         }
     }
@@ -100,7 +101,6 @@ public class Core implements Runnable {
     }
 
     private void logInformation() {
-
         String displayName = "";
         Widget w = Widgets.getWidget(162);
         if (w != null) {
@@ -109,22 +109,26 @@ public class Core implements Runnable {
         }
 
         String accountType = Client.isMembers() ? "P2P" : "F2P";
-        int world = Client.getCurrentWorld();
+        int world = Worlds.getCurrentWorld();
         int membershipDaysLeft = PlayerSettings.getConfig(1780);
 
-        StringBuilder jsonOutput = new StringBuilder();
-        jsonOutput.append("{");
-        jsonOutput.append("\"BB_DISPLAYNAME\": \"").append(displayName).append("\", ");
-        jsonOutput.append("\"BB_TYPE\": \"").append(accountType).append("\", ");
-        jsonOutput.append("\"BB_MEM_DAYS_LEFT\": ").append(membershipDaysLeft).append(", ");
-        jsonOutput.append("\"BB_WORLD\": ").append(world).append(", ");
-        jsonOutput.append("\"BB_GP\": ").append(lastTotalGP).append(", ");
-        jsonOutput.append("\"BB_TTL\": ").append(lastTotalLevel).append(", ");
-        jsonOutput.append("\"BB_QP\": ").append(lastQuestPoints).append(", ");
-        jsonOutput.append(getStatsJson());
-        jsonOutput.append("}");
+        JsonObject jsonOutput = new JsonObject();
+        jsonOutput.addProperty("BB_DISPLAYNAME", displayName);
+        jsonOutput.addProperty("BB_TYPE", accountType);
+        jsonOutput.addProperty("BB_MEM_DAYS_LEFT", membershipDaysLeft);
+        jsonOutput.addProperty("BB_WORLD", world);
+        jsonOutput.addProperty("BB_GP", Math.max(lastTotalGP, 0));
+        jsonOutput.addProperty("BB_TTL", lastTotalLevel);
+        jsonOutput.addProperty("BB_QP", lastQuestPoints);
 
-        log("BB_OUTPUT: " + jsonOutput.toString());
+        JsonObject statsJson = new JsonObject();
+        for (Map.Entry<Skill, Integer> entry : lastSkillLevels.entrySet()) {
+            statsJson.addProperty(entry.getKey().getName(), entry.getValue());
+        }
+        jsonOutput.add("BB_STATS", statsJson);
+
+        Gson gson = new Gson();
+        log("BB_OUTPUT: " + gson.toJson(jsonOutput));
     }
 
     private String getStatsJson() {
@@ -140,27 +144,27 @@ public class Core implements Runnable {
         return statsJson.toString();
     }
 
-    private int getBankPlatinumTokens() {
+    private long getBankPlatinumTokens() {
         Item platinumTokens = Bank.get("Platinum token");
-        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000L : 0L;
     }
 
-    private int getInventoryPlatinumTokens() {
+    private long getInventoryPlatinumTokens() {
         Item platinumTokens = Inventory.get("Platinum token");
-        return platinumTokens != null ? platinumTokens.getAmount() * 1000 : 0;
+        return platinumTokens != null ? platinumTokens.getAmount() * 1000L : 0L;
     }
 
-    private int getBankGP() {
+    private long getBankGP() {
         if (!Bank.isOpen()) {
             return lastBankGP;
         }
         Item coins = Bank.get("Coins");
-        return coins != null ? coins.getAmount() : 0;
+        return coins != null ? coins.getAmount() : 0L;
     }
 
-    private int getInventoryGP() {
+    private long getInventoryGP() {
         Item coins = Inventory.get("Coins");
-        return coins != null ? coins.getAmount() : 0;
+        return coins != null ? coins.getAmount() : 0L;
     }
 
     private int getTotalLevel() {
