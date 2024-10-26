@@ -131,19 +131,6 @@ public class Core implements Runnable {
         log("BB_OUTPUT: " + gson.toJson(jsonOutput));
     }
 
-    private String getStatsJson() {
-        StringBuilder statsJson = new StringBuilder("\"BB_STATS\": {");
-        for (Map.Entry<Skill, Integer> entry : lastSkillLevels.entrySet()) {
-            statsJson.append("\"").append(entry.getKey().getName()).append("\": ")
-                    .append(entry.getValue()).append(", ");
-        }
-        if (!lastSkillLevels.isEmpty()) {
-            statsJson.setLength(statsJson.length() - 2); // Remove the last comma and space
-        }
-        statsJson.append("}");
-        return statsJson.toString();
-    }
-
     private long getBankPlatinumTokens() {
         Item platinumTokens = Bank.get("Platinum token");
         return platinumTokens != null ? platinumTokens.getAmount() * 1000L : 0L;
