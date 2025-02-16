@@ -101,13 +101,7 @@ public class Core implements Runnable {
     }
 
     private void logInformation() {
-        String displayName = "";
-        Widget w = Widgets.getWidget(162);
-        if (w != null) {
-            WidgetChild c = w.getChild(55);
-            displayName = c.getText().split(":")[0].trim();
-        }
-
+        String displayName = Players.getLocal().getName();
         String accountType = Client.isMembers() ? "P2P" : "F2P";
         int world = Worlds.getCurrentWorld();
         int membershipDaysLeft = PlayerSettings.getConfig(1780);
