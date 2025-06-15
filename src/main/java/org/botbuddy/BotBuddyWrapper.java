@@ -20,7 +20,12 @@ import org.dreambot.api.utilities.Logger;
 import java.util.Arrays;
 import java.util.HashMap;
 
-@ScriptManifest(category = Category.MISC, name = "BotBuddyWrapper", author = "lolwat", version = 2.0)
+@ScriptManifest(
+        category = Category.UTILITY,
+        name = "BotBuddyWrapper",
+        author = "lolwat",
+        version = 2.0,
+        image = "https://api.botbuddy.net/WatScripts.png")
 public class BotBuddyWrapper extends AbstractScript {
     private String scriptName;
     private String[] params;
@@ -87,7 +92,7 @@ public class BotBuddyWrapper extends AbstractScript {
                         Gson gson = new Gson();
                         Logger.log("BB_OUTPUT: " + gson.toJson(jsonOutput));
 
-                        Thread.sleep(30000);
+                        Thread.sleep(60000);
                     } catch (InterruptedException e) {
                         break;
                     } catch (Exception ignored) {}
@@ -95,7 +100,7 @@ public class BotBuddyWrapper extends AbstractScript {
             }, "BotBuddy-Background").start();
             new Thread(() -> {
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(500);
                 } catch (InterruptedException ignored) {}
                 ScriptManager.getScriptManager().start(scriptName, params);
             }).start();
@@ -120,6 +125,6 @@ public class BotBuddyWrapper extends AbstractScript {
 
     @Override
     public int onLoop() {
-        return 50;
+        return 150;
     }
 }
