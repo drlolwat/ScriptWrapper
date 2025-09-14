@@ -3,6 +3,7 @@ package org.botbuddy;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.dreambot.api.Client;
+import org.dreambot.api.data.GameState;
 import org.dreambot.api.methods.container.impl.Inventory;
 import org.dreambot.api.methods.container.impl.bank.Bank;
 import org.dreambot.api.methods.interactive.Players;
@@ -15,6 +16,7 @@ import org.dreambot.api.script.AbstractScript;
 import org.dreambot.api.script.Category;
 import org.dreambot.api.script.ScriptManager;
 import org.dreambot.api.script.ScriptManifest;
+import org.dreambot.api.utilities.AccountManager;
 import org.dreambot.api.utilities.Logger;
 
 import java.util.Arrays;
@@ -59,7 +61,10 @@ public class BotBuddyWrapper extends AbstractScript {
             new Thread(() -> {
                 while (true) {
                     try {
-                        if(!Client.isLoggedIn()) {
+                        if((!Client.isLoggedIn() && !Client.getGameState().equals(GameState.LOGGED_IN))
+                                || Players.getLocal().getName().isEmpty()
+                                || Skills.getRealLevel(Skill.HITPOINTS) < 10) {
+
                             Thread.sleep(1000);
                             continue;
                         }
@@ -71,7 +76,7 @@ public class BotBuddyWrapper extends AbstractScript {
                         this.inventoryCoins = Inventory.count("Coins");
                         this.questPoints = Quests.getQuestPoints();
                         this.totalLevel = Skills.getTotalLevel();
-                        this.characterName = Players.getLocal().getName();
+                        this.characterName = AccountManager.getAccountUsername().isEmpty() ? AccountManager.getAccountNickname() : AccountManager.getAccountUsername();
                         this.accountType = Worlds.getCurrent().isMembers() ? "P2P" : "F2P";
                         this.memberDaysLeft = PlayerSettings.getConfig(1780);
                         this.currentWorld = Worlds.getCurrentWorld();
