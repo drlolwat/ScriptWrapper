@@ -49,6 +49,16 @@ public class BotBuddyWrapper extends AbstractScript {
                 return;
             }
 
+            new Thread(() -> {
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        Logger.log("BB_HEARTBEAT");
+                        Thread.sleep(30_000);
+                    }
+                } catch (InterruptedException ignored) {
+                }
+            }, "BotBuddy-Heartbeat").start();
+
             this.scriptName = args[0];
             this.params = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0];
 
